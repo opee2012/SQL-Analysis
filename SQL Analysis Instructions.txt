@@ -1,0 +1,40 @@
+Instructions:
+In this assignment you will use a real life dataset to do some analysis with SQL.  The dataset contains 9,162,537 Class C ip addresses blocks and the city, state, and country that they belong to.  In total, the database represents the allocation of ~2.3 billion ip addresses.  Obviously that means the dataset is incomplete, it is however real.  This is a sample of a product you can purchase for quite a bit of money.  The only thing you get with the purchase is regular updates (e.g. daily/weekly) to the information within the database. The three tables containing the data are cityByCountry, countries, and ip4.  The dataset came from hostip.info.  Here is a referential diagram for you to use to better understand the dataset.  You will note that the table ip4 has no primary key, this is not a mistake, they did not specify any.  I also note that I annotated what I believe to be the *intended* foreign keys.  The tables themselves have no FK's. This is as real as real life databases get.
+ 
+My recommendation is to first start by just briefly peeking into each table.  DO NOT do something like SELECT * FROM ip4;  Why? Because there are over 9 million rows.  To peek use the LIMIT clause.  I.E. SELECT * FROM ip4 LIMIT 10;
+NOTE:  In the ip4 table you will see ip4.ip represented as an integer instead of an ip address.  Don't let that hold you up.  If your really curious you can use www.silisoftware.com/tools/ipconverter.php?convert_from= to go back and forth.  It is not necessary for this assignment though. I did this to see if the dataset was accurate.  My office computer shows an IP address of 206.74.211.244 so it's 206.74.211.0 would be the Class C block.  I pass that to http://www.silisoftware.com/tools/ipconverter.php?convert_from=206.74.211.0 and get that the integer representation of that is 3461010176.  I take that integer and query the DB using: SELECT name FROM ip4 JOIN cityByCountry ON ip4.city = cityByCountry.city WHERE ip=3461010176; and get one result: "Rock Hill SC", SWEET!  If you get bored try it yourself.
+To use the dataset use my MySQL account:  
+mysql -h deltona.birdnest.org -u CSCI355 -pCSCI355 IPAllocations;
+
+You will turn in the SQL queries necessary to produce the result for each question.  I am providing hints and the final answer so you can check your work before submitting. Because there are multiple ways of writing the SQL query and obtaining the same result correctness is based (mostly) on the output of your query.   In other words the result of your SQL query should match the output of mine exactly.  If it doesn't you likely did something wrong.  Note: Your decimal part may vary very slightly depending on the method you choose.  That's ok and will be considered correct for the purposes of this assignment.
+The problems do increase in complexity as you go on.
+Question 1 (10 pts):
+Select the top 10 countries with the most number of ip blocks allocated to it and the number of address blocks in it. Order if from greatest to least.
+Hint 1:
+The answer involves joining, grouping by an attribute, ordering, and limiting the results to 10.
+
+Question 2 (10 pts):
+Select the top 10 cities with the most number of ip blocks in the united states and the number of address blocks in it.  Order it from greatest to least.
+Hint 2:
+Answering this question involves joining tables.  Similar to Question 1 you will order, limit, and group by an attribute.
+
+Question 3 (20 pts):
+Select the cities in the united states that have between 4,000 - 5,000 ip address blocks ordered from least to greatest.  
+Hint 3:
+Very similar to Question 2!
+
+Question 4 (30 pts):
+Select the average number of ip blocks that would be found in a city for each state.  Order it by state from least to greatest or A-Z.
+Hint 4:
+The complexity of this problem comes from the fact that you can't easily get at the aggregation you want in a straightforward way.  So first think about how you could go produce a "virtual" table (subquery!) that will allow you to easily aggregate FROM it.  Further hint: One possible query to get that table would look like....  SELECT cityByCountry.state, cityByCountry.name, count(ip4.ip) as numIP FROM ... LEFT JOIN ... ON ... JOIN ... ON cityByCountry.country = countries.id AND countries.name = "UNITED STATES" AND cityByCountry.state <> "" GROUP BY ... ORDER BY cityByCountry.state ASC
+Now that you have the state with each of its cities this problem becomes a simple group by aggregation problem.  So the question to ask yourself is how can you take the query you just did and aggregate FROM it? This is not the only way to go about this problem.  Again you can do it a different way as long as you get the same answer as me for the answer part.
+
+Question 5 (30 pts):
+Select the states that have average ip address block allocations per city greater than the average per city allocations of all states.  Order it by state from A-Z.  
+Hint 5:
+Harder Method (Full Credit)
+If your paying attention you will notice that what I'm asking you to do here is a subquery on the result of Question 4 where you will compute yet more averages and use it as a selection condition.  You'll have to play with the SQL a little bit to get it work but nothing is new here just lots of subqueries, aliasing, etc going on and keeping track of which one you are in and what you are using it for...
+It may be easier to do the easy method first to understand at a higher level what you need to do.  Then come back and apply it here.
+Easy Method (HalfCredit)
+Because that will get very messy I've created a table to simplify how you need to think of it.  Why did I chose a table and not a view?  Simply because you would have access to the SQL necessary to answer question 4 with a view.  So table it is. The tables name is StateAvg and again, it's contents are the result obtained from Answer 4. Once you get this I'd go back and do the harder one.
+
